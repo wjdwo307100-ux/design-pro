@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#37352F">
+<meta name="description" content="디자이너를 위한 상세페이지 견적 계산기. 시장 평균가 기반으로 견적 5초 산출.">
+<title>노션쟁이 견적 계산기</title>
+
+<link rel="manifest" href="./manifest.json">
+
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="견적기">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<link rel="apple-touch-icon" sizes="192x192" href="./icon-192.png">
+<link rel="apple-touch-icon" sizes="512x512" href="./icon-512.png">
+<link rel="icon" type="image/png" href="./icon-192.png">
+
+<meta property="og:title" content="노션쟁이 견적 계산기">
+<meta property="og:description" content="디자이너를 위한 상세페이지 견적 5초 산출">
+<meta property="og:image" content="./icon-512.png">
+<meta property="og:type" content="website">
+
+<style>
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Segoe UI", "Helvetica Neue", "Noto Sans KR", sans-serif;
+    margin: 0;
+    padding: 0;
+    background: #F7F6F3;
+    color: #37352F;
+    min-height: 100vh;
+    min-height: -webkit-fill-available;
+  }
+  .nq-container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 16px;
+    padding-top: max(16px, env(safe-area-inset-top));
+    padding-bottom: max(16px, env(safe-area-inset-bottom));
+  }
+  .nq { color: #37352F; }
+  .nq h2.nq-title { font-size: 20px; font-weight: 500; margin: 0; letter-spacing: -0.01em; color: #37352F; }
+  .nq .nq-page-meta { font-size: 11px; color: #9B9A97; }
+  .nq .nq-divider { height: 1px; background: #EBEAE8; margin: 16px 0; border: none; }
+  .nq .nq-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; gap: 8px; }
+  .nq .nq-row-label { font-size: 14px; color: #37352F; }
+  .nq .nq-row-value { font-size: 14px; font-weight: 500; color: #37352F; font-variant-numeric: tabular-nums; }
+  .nq .nq-hint { font-size: 12px; color: #9B9A97; margin-top: 6px; line-height: 1.5; }
+  .nq .nq-slider { width: 100%; appearance: none; -webkit-appearance: none; background: transparent; height: 40px; cursor: pointer; touch-action: pan-y; }
+  .nq .nq-slider::-webkit-slider-runnable-track { height: 4px; background: #E9E9E7; border-radius: 2px; }
+  .nq .nq-slider::-moz-range-track { height: 4px; background: #E9E9E7; border-radius: 2px; }
+  .nq .nq-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 28px; height: 28px; background: #37352F; border-radius: 50%; margin-top: -12px; border: 3px solid white; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+  .nq .nq-slider::-moz-range-thumb { width: 28px; height: 28px; background: #37352F; border-radius: 50%; border: 3px solid white; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+  .nq .nq-callout { background: #F7F6F3; border-radius: 6px; padding: 12px 14px; display: flex; gap: 10px; align-items: flex-start; }
+  .nq .nq-callout-icon { font-size: 16px; line-height: 1.6; flex-shrink: 0; }
+  .nq .nq-callout-text { font-size: 13px; line-height: 1.55; color: #37352F; }
+  .nq .nq-opts-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .nq .nq-opt-card { padding: 12px; background: white; border: 1.5px solid #EBEAE8; border-radius: 8px; cursor: pointer; transition: all 0.15s; min-height: 64px; display: flex; flex-direction: column; justify-content: space-between; }
+  .nq .nq-opt-card.checked { border-color: #2383E2; background: #F0F7FF; }
+  .nq .nq-opt-card input { display: none; }
+  .nq .nq-opt-name { font-size: 13px; font-weight: 500; color: #37352F; }
+  .nq .nq-opt-card.checked .nq-opt-name { color: #1E5A85; }
+  .nq .nq-opt-price { font-size: 11px; color: #9B9A97; margin-top: 4px; font-variant-numeric: tabular-nums; }
+  .nq .nq-opt-card.checked .nq-opt-price { color: #2383E2; font-weight: 500; }
+  .nq .nq-select { width: 100%; padding: 10px 12px; border: 1px solid #E9E9E7; border-radius: 6px; background: white; font-size: 15px; color: #37352F; font-family: inherit; cursor: pointer; min-height: 44px; }
+  .nq .nq-select:focus { outline: none; border-color: #2383E2; box-shadow: 0 0 0 2px rgba(35, 131, 226, 0.15); }
+  .nq .nq-field-label { display: block; font-size: 12px; color: #9B9A97; margin-bottom: 6px; }
+  .nq .nq-input { width: 100%; padding: 10px 12px; border: 1px solid #E9E9E7; border-radius: 6px; background: white; font-size: 15px; color: #37352F; font-family: inherit; min-height: 44px; box-sizing: border-box; }
+  .nq .nq-input:focus { outline: none; border-color: #2383E2; }
+  .nq .nq-property { display: flex; align-items: center; padding: 8px 0; border-bottom: 1px solid #EBEAE8; font-size: 14px; gap: 8px; }
+  .nq .nq-property:last-child { border-bottom: none; }
+  .nq .nq-property-key { color: #9B9A97; font-size: 12px; display: flex; align-items: center; gap: 6px; min-width: 0; flex: 1; }
+  .nq .nq-property-val { color: #37352F; font-variant-numeric: tabular-nums; font-size: 13px; white-space: nowrap; }
+  .nq .nq-total-row { padding: 14px 0; border-top: 2px solid #37352F; border-bottom: 2px solid #37352F; margin-top: 8px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .nq .nq-total-label { font-size: 13px; color: #37352F; font-weight: 500; }
+  .nq .nq-total-value { font-size: 26px; font-weight: 500; color: #37352F; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+  .nq .nq-tag { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 500; white-space: nowrap; }
+  .nq .nq-tag-low { background: #FDECC8; color: #B07700; }
+  .nq .nq-tag-mid { background: #DBEDDB; color: #4A7E4A; }
+  .nq .nq-tag-high { background: #D3E5EF; color: #1E5A85; }
+  .nq .nq-tag-premium { background: #E8DEEE; color: #6940A5; }
+  .nq .nq-market-bar { position: relative; height: 6px; background: #E9E9E7; border-radius: 3px; margin: 12px 0 8px; }
+  .nq .nq-market-tick { position: absolute; left: 50%; top: -3px; bottom: -3px; width: 1px; background: #9B9A97; }
+  .nq .nq-market-dot { position: absolute; top: -5px; width: 16px; height: 16px; background: #37352F; border-radius: 50%; transform: translateX(-50%); border: 2px solid white; box-shadow: 0 0 0 1px #37352F; transition: left 0.2s; }
+  .nq .nq-market-axis { display: flex; justify-content: space-between; font-size: 11px; color: #9B9A97; gap: 4px; }
+  .nq .nq-market-axis span:nth-child(2) { text-align: center; font-variant-numeric: tabular-nums; }
+  .nq .nq-code-block { background: #F7F6F3; border-radius: 6px; padding: 14px; font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 12px; line-height: 1.6; color: #37352F; white-space: pre-wrap; margin: 0; max-height: 280px; overflow-y: auto; -webkit-overflow-scrolling: touch; word-break: break-word; }
+  .nq .nq-btn { background: white; border: 1px solid #E9E9E7; border-radius: 6px; padding: 12px 16px; font-size: 14px; color: #37352F; cursor: pointer; font-family: inherit; transition: background 0.1s; min-height: 44px; -webkit-tap-highlight-color: transparent; }
+  .nq .nq-btn:active { background: #F7F6F3; transform: scale(0.98); }
+  .nq .nq-btn-primary { background: #37352F; color: white; border-color: #37352F; font-weight: 500; }
+  .nq .nq-btn-primary:active { background: #1F1E1B; }
+  .nq .nq-btn-danger { color: #C44545; border-color: #F0D5D5; }
+  .nq .nq-btn-block { width: 100%; }
+  .nq .nq-action-stack { display: flex; flex-direction: column; gap: 8px; }
+  .nq h3.nq-h3 { font-size: 15px; font-weight: 500; margin: 24px 0 10px; color: #37352F; letter-spacing: -0.005em; display: flex; align-items: center; gap: 8px; }
+  .nq h3.nq-h3 .nq-h3-count { font-size: 11px; color: #9B9A97; font-weight: 400; }
+  .nq-page { background: white; border: 1px solid #EBEAE8; border-radius: 8px; padding: 20px 16px; }
+  .nq-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border-bottom: 1px solid #EBEAE8; margin-bottom: 12px; }
+  .nq-tab { padding: 10px 8px; font-size: 13px; color: #9B9A97; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; text-align: center; -webkit-tap-highlight-color: transparent; }
+  .nq-tab:active { background: #F7F6F3; }
+  .nq-tab.active { color: #37352F; border-bottom-color: #37352F; font-weight: 500; }
+  .nq-tab-content { display: none; }
+  .nq-tab-content.active { display: block; }
+  .nq-history-row { display: flex; align-items: center; gap: 8px; padding: 12px; border: 1px solid #EBEAE8; border-radius: 6px; margin-bottom: 6px; font-size: 13px; }
+  .nq-history-main { flex: 1; min-width: 0; }
+  .nq-history-title { font-weight: 500; color: #37352F; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; }
+  .nq-history-meta { font-size: 11px; color: #9B9A97; margin-top: 2px; }
+  .nq-history-actions { display: flex; gap: 4px; flex-shrink: 0; }
+  .nq-history-btn { width: 36px; height: 36px; padding: 0; display: flex; align-items: center; justify-content: center; font-size: 14px; cursor: pointer; background: white; border: 1px solid #E9E9E7; border-radius: 6px; color: #37352F; -webkit-tap-highlight-color: transparent; }
+  .nq-history-btn:active { background: #F7F6F3; }
+  .nq-empty { padding: 24px 16px; text-align: center; color: #9B9A97; font-size: 13px; line-height: 1.6; }
+  .nq-save-indicator { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; color: #9B9A97; }
+  .nq-save-dot { width: 6px; height: 6px; background: #4A7E4A; border-radius: 50%; }
+  .nq-emoji-header { font-size: 40px; line-height: 1; margin-bottom: 8px; }
+  .nq-install-btn {
+    display: none;
+    position: fixed;
+    bottom: 16px;
+    right: 16px;
+    background: #2383E2;
+    color: white;
+    border: none;
+    border-radius: 24px;
+    padding: 12px 20px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(35,131,226,0.4);
+    z-index: 100;
+  }
+  @media (prefers-color-scheme: dark) {
+    body { background: #1F1F1F; }
+    .nq-page { background: #2F3437; border-color: #3F4448; }
+    .nq, .nq h2.nq-title, .nq .nq-row-label, .nq .nq-row-value, .nq .nq-property-val, .nq .nq-total-label, .nq .nq-total-value, .nq .nq-callout-text, .nq h3.nq-h3, .nq-history-title, .nq .nq-opt-name { color: #E6E6E4; }
+    .nq .nq-divider, .nq .nq-property, .nq-tabs, .nq-history-row { border-color: #3F4448; }
+    .nq .nq-total-row { border-color: #E6E6E4; }
+    .nq .nq-callout, .nq .nq-code-block { background: #373C3F; }
+    .nq .nq-select, .nq .nq-btn, .nq .nq-input, .nq-history-btn, .nq .nq-opt-card { background: #2F3437; color: #E6E6E4; border-color: #3F4448; }
+    .nq .nq-opt-card.checked { background: rgba(35, 131, 226, 0.15); border-color: #2383E2; }
+    .nq .nq-opt-card.checked .nq-opt-name { color: #85B7EB; }
+    .nq .nq-btn-primary { background: #E6E6E4; color: #2F3437; border-color: #E6E6E4; }
+    .nq .nq-slider::-webkit-slider-runnable-track, .nq .nq-slider::-moz-range-track { background: #3F4448; }
+    .nq .nq-slider::-webkit-slider-thumb, .nq .nq-slider::-moz-range-thumb { background: #E6E6E4; border-color: #2F3437; }
+    .nq .nq-market-bar { background: #3F4448; }
+    .nq .nq-market-dot { background: #E6E6E4; box-shadow: 0 0 0 1px #E6E6E4; border-color: #2F3437; }
+    .nq-tab.active { color: #E6E6E4; border-bottom-color: #E6E6E4; }
+  }
+</style>
+</head>
+<body>
+
+<div class="nq-container">
+  <div class="nq">
+    <div class="nq-page">
+      <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 8px;">
+        <div class="nq-emoji-header">💰</div>
+        <div class="nq-save-indicator" id="save-indicator" style="display: none;">
+          <span class="nq-save-dot"></span>
+          <span id="save-text">저장됨</span>
+        </div>
+      </div>
+
+      <h2 class="nq-title">디자이너 견적 계산기</h2>
+      <div class="nq-page-meta" style="margin-top: 4px;">노션쟁이 · v6 · 모바일 최적화</div>
+
+      <div class="nq-callout" style="margin-top: 14px;">
+        <span class="nq-callout-icon">💾</span>
+        <span class="nq-callout-text">입력값은 자동 저장돼요. 다른 페이지 다녀와도 그대로 유지됩니다.</span>
+      </div>
+
+      <h3 class="nq-h3">📐 작업 범위</h3>
+
+      <div style="margin-bottom: 18px;">
+        <label class="nq-field-label">프로젝트명 (선택)</label>
+        <input type="text" id="projname" class="nq-input" placeholder="예: 권석진 사장님 양말" />
+      </div>
+
+      <div style="margin-bottom: 14px;">
+        <div class="nq-row">
+          <span class="nq-row-label">상세페이지 길이</span>
+          <span class="nq-row-value" id="px-out">15,000 px</span>
+        </div>
+        <input type="range" id="px" class="nq-slider" min="3000" max="40000" step="1000" value="15000" />
+        <div class="nq-hint" id="px-tier"></div>
+      </div>
+
+      <div style="margin-bottom: 14px;">
+        <div class="nq-row">
+          <span class="nq-row-label">기본 단가 (1,000px당)</span>
+          <span class="nq-row-value" id="rate-out">5,000원</span>
+        </div>
+        <input type="range" id="rate" class="nq-slider" min="3000" max="15000" step="500" value="5000" />
+        <div class="nq-hint">신입 3,000 · 중급 6,000 · 전문가 15,000</div>
+      </div>
+
+      <div style="margin-bottom: 14px;">
+        <div class="nq-row">
+          <span class="nq-row-label">수정 횟수</span>
+          <span class="nq-row-value" id="rev-out">2회</span>
+        </div>
+        <input type="range" id="rev" class="nq-slider" min="0" max="5" step="1" value="2" />
+        <div class="nq-hint">기본 2회 · 초과 시 회당 20,000원</div>
+      </div>
+
+      <h3 class="nq-h3">✨ 추가 옵션</h3>
+
+      <div class="nq-opts-grid" id="opts-container">
+        <label class="nq-opt-card">
+          <input type="checkbox" class="opt" data-price="30000" data-name="원본 파일" />
+          <span class="nq-opt-name">원본 파일</span>
+          <span class="nq-opt-price">+30,000원</span>
+        </label>
+        <label class="nq-opt-card">
+          <input type="checkbox" class="opt" data-price="50000" data-name="상단 배너" />
+          <span class="nq-opt-name">상단 배너</span>
+          <span class="nq-opt-price">+50,000원</span>
+        </label>
+        <label class="nq-opt-card">
+          <input type="checkbox" class="opt" data-price="40000" data-name="썸네일" />
+          <span class="nq-opt-name">썸네일</span>
+          <span class="nq-opt-price">+40,000원</span>
+        </label>
+        <label class="nq-opt-card">
+          <input type="checkbox" class="opt" data-price="80000" data-name="모바일 최적화" />
+          <span class="nq-opt-name">모바일 최적화</span>
+          <span class="nq-opt-price">+80,000원</span>
+        </label>
+        <label class="nq-opt-card">
+          <input type="checkbox" class="opt" data-price="60000" data-name="이미지 보정" />
+          <span class="nq-opt-name">이미지 보정</span>
+          <span class="nq-opt-price">+60,000원</span>
+        </label>
+        <label class="nq-opt-card">
+          <input type="checkbox" class="opt" data-price="50000" data-name="카피라이팅" />
+          <span class="nq-opt-name">카피라이팅</span>
+          <span class="nq-opt-price">+50,000원</span>
+        </label>
+      </div>
+
+      <h3 class="nq-h3">🏷️ 프로젝트 속성</h3>
+
+      <div style="margin-bottom: 12px;">
+        <label class="nq-field-label">제품 카테고리</label>
+        <select id="cat" class="nq-select">
+          <option value="1.0" data-name="일반">일반 (×1.0)</option>
+          <option value="0.9" data-name="식품">식품 (×0.9)</option>
+          <option value="1.2" data-name="화장품/뷰티">화장품/뷰티 (×1.2)</option>
+          <option value="1.3" data-name="전자제품">전자제품 (×1.3)</option>
+          <option value="1.4" data-name="고가 명품">고가 명품 (×1.4)</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="nq-field-label">납기</label>
+        <select id="urgent" class="nq-select">
+          <option value="1.0" data-days="7">일반 7일 (×1.0)</option>
+          <option value="1.3" data-days="3">긴급 3일 (×1.3)</option>
+          <option value="1.6" data-days="1">초긴급 1일 (×1.6)</option>
+        </select>
+      </div>
+
+      <h3 class="nq-h3">📊 견적 요약</h3>
+
+      <div class="nq-property">
+        <div class="nq-property-key">📐 기본 작업료</div>
+        <div class="nq-property-val" id="base-val">75,000원</div>
+      </div>
+      <div class="nq-property">
+        <div class="nq-property-key">✨ 추가 옵션</div>
+        <div class="nq-property-val" id="opt-val">0원</div>
+      </div>
+      <div class="nq-property">
+        <div class="nq-property-key">📝 추가 수정</div>
+        <div class="nq-property-val" id="rev-val">0원</div>
+      </div>
+      <div class="nq-property">
+        <div class="nq-property-key">⚙️ 가중치</div>
+        <div class="nq-property-val" id="multi-val">×1.00</div>
+      </div>
+
+      <div class="nq-total-row">
+        <span class="nq-total-label">최종 견적<br><span style="font-size: 11px; color: #9B9A97; font-weight: 400;">VAT 별도</span></span>
+        <span class="nq-total-value" id="total">75,000원</span>
+      </div>
+
+      <div style="margin-top: 18px;">
+        <div class="nq-row">
+          <span class="nq-row-label" style="font-size: 13px;">시장 평균 대비</span>
+          <span id="market-tag"></span>
+        </div>
+        <div class="nq-market-bar">
+          <div class="nq-market-tick"></div>
+          <div class="nq-market-dot" id="market-dot" style="left: 50%;"></div>
+        </div>
+        <div class="nq-market-axis">
+          <span>저렴</span><span id="market-avg">평균 75,000원</span><span>프리미엄</span>
+        </div>
+      </div>
+
+      <div class="nq-action-stack" style="margin-top: 18px;">
+        <button id="save-btn" class="nq-btn nq-btn-primary nq-btn-block">💾 견적 저장</button>
+        <button id="reset-btn" class="nq-btn nq-btn-block">🔄 새 견적</button>
+      </div>
+
+      <h3 class="nq-h3">📚 저장된 견적 <span class="nq-h3-count" id="history-count">0건</span></h3>
+
+      <div id="history-list">
+        <div class="nq-empty">아직 저장된 견적이 없어요.<br>"💾 견적 저장" 버튼을 눌러보세요.</div>
+      </div>
+
+      <h3 class="nq-h3">📋 출력 형식</h3>
+
+      <div class="nq-tabs">
+        <div class="nq-tab active" data-tab="client">💬 카톡 전송용</div>
+        <div class="nq-tab" data-tab="notion">🗂️ 노션용</div>
+      </div>
+
+      <div id="tab-client" class="nq-tab-content active">
+        <pre id="msg-client" class="nq-code-block"></pre>
+        <button id="copy-client" class="nq-btn nq-btn-primary nq-btn-block" style="margin-top: 10px;">📋 복사하기</button>
+      </div>
+
+      <div id="tab-notion" class="nq-tab-content">
+        <pre id="msg-notion" class="nq-code-block"></pre>
+        <button id="copy-notion" class="nq-btn nq-btn-block" style="margin-top: 10px;">🗂️ 노션 작업 OS로 보내기</button>
+      </div>
+
+      <hr class="nq-divider" style="margin: 24px 0 18px;">
+
+      <div class="nq-action-stack">
+        <button class="nq-btn nq-btn-danger nq-btn-block" id="clear-all-btn">🗑️ 모든 견적 삭제</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<button id="pwa-install-btn" class="nq-install-btn">📲 앱으로 설치</button>
+
+<script>
+(function() {
+  var $ = function(id) { return document.getElementById(id); };
+  var fmt = function(n) { return new Intl.NumberFormat('ko-KR').format(Math.round(n)); };
+  var STATE_KEY = 'nq_quote_state_v6';
+  var HISTORY_KEY = 'nq_quote_history_v6';
+
+  function marketAvg(px) {
+    if (px <= 5000) return 6500;
+    if (px <= 10000) return 5800;
+    if (px <= 20000) return 5200;
+    if (px <= 30000) return 4500;
+    return 4000;
+  }
+
+  function effectiveRate(px, baseRate) {
+    if (px <= 10000) return baseRate;
+    if (px <= 20000) return baseRate * 0.92;
+    if (px <= 30000) return baseRate * 0.85;
+    return baseRate * 0.78;
+  }
+
+  function tierLabel(px) {
+    if (px <= 5000) return '짧은 페이지 · 단가 그대로';
+    if (px <= 10000) return '표준 페이지 · 단가 그대로';
+    if (px <= 20000) return '긴 페이지 · -8% 할인';
+    if (px <= 30000) return '대형 페이지 · -15% 할인';
+    return '초대형 · -22% 할인';
+  }
+
+  function todayPlus(days) {
+    var d = new Date();
+    d.setDate(d.getDate() + days);
+    return d.toISOString().slice(0, 10);
+  }
+
+  function dateLabel(iso) {
+    var d = new Date(iso);
+    var m = d.getMonth() + 1;
+    var day = d.getDate();
+    var h = d.getHours();
+    var min = String(d.getMinutes()).padStart(2, '0');
+    return m + '/' + day + ' ' + h + ':' + min;
+  }
+
+  function getState() {
+    return {
+      projname: $('projname').value,
+      px: parseInt($('px').value),
+      rate: parseInt($('rate').value),
+      rev: parseInt($('rev').value),
+      cat: $('cat').value,
+      urgent: $('urgent').value,
+      opts: Array.prototype.map.call(document.querySelectorAll('.opt'), function(el) { return el.checked; })
+    };
+  }
+
+  function setState(s) {
+    if (!s) return;
+    if (s.projname !== undefined) $('projname').value = s.projname;
+    if (s.px !== undefined) $('px').value = s.px;
+    if (s.rate !== undefined) $('rate').value = s.rate;
+    if (s.rev !== undefined) $('rev').value = s.rev;
+    if (s.cat !== undefined) $('cat').value = s.cat;
+    if (s.urgent !== undefined) $('urgent').value = s.urgent;
+    if (s.opts && Array.isArray(s.opts)) {
+      Array.prototype.forEach.call(document.querySelectorAll('.opt'), function(el, i) {
+        el.checked = !!s.opts[i];
+        var card = el.closest('.nq-opt-card');
+        if (card) card.classList.toggle('checked', el.checked);
+      });
+    }
+  }
+
+  function saveState() {
+    try {
+      localStorage.setItem(STATE_KEY, JSON.stringify(getState()));
+      showSaveIndicator();
+    } catch (e) {}
+  }
+
+  function loadState() {
+    try {
+      var raw = localStorage.getItem(STATE_KEY);
+      if (raw) setState(JSON.parse(raw));
+    } catch (e) {}
+  }
+
+  function loadHistory() {
+    try {
+      var raw = localStorage.getItem(HISTORY_KEY);
+      return raw ? JSON.parse(raw) : [];
+    } catch (e) { return []; }
+  }
+
+  function saveHistory(list) {
+    try { localStorage.setItem(HISTORY_KEY, JSON.stringify(list)); } catch (e) {}
+  }
+
+  var saveTimer = null;
+  function showSaveIndicator() {
+    var ind = $('save-indicator');
+    ind.style.display = 'inline-flex';
+    $('save-text').textContent = '저장됨';
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(function() { ind.style.display = 'none'; }, 1500);
+  }
+
+  function calc() {
+    var projname = $('projname').value.trim();
+    var px = parseInt($('px').value);
+    var baseRate = parseInt($('rate').value);
+    var rate = effectiveRate(px, baseRate);
+    var rev = parseInt($('rev').value);
+    var cat = parseFloat($('cat').value);
+    var catName = $('cat').selectedOptions[0].dataset.name;
+    var urgent = parseFloat($('urgent').value);
+    var days = parseInt($('urgent').selectedOptions[0].dataset.days);
+
+    var base = (px / 1000) * rate;
+    var opts = Array.prototype.filter.call(document.querySelectorAll('.opt'), function(el) { return el.checked; })
+      .map(function(el) { return { name: el.dataset.name, price: parseInt(el.dataset.price) }; });
+    var optSum = opts.reduce(function(s, o) { return s + o.price; }, 0);
+    var extraRev = Math.max(0, rev - 2) * 20000;
+    var subtotal = base + optSum + extraRev;
+    var multi = cat * urgent;
+    var total = subtotal * multi;
+
+    var avgTotal = (px / 1000) * marketAvg(px) + optSum;
+    var ratio = total / avgTotal;
+    var position, tagClass;
+    if (ratio < 0.85) { position = '저렴'; tagClass = 'nq-tag-low'; }
+    else if (ratio < 1.0) { position = '시장 평균'; tagClass = 'nq-tag-mid'; }
+    else if (ratio < 1.15) { position = '약간 높음'; tagClass = 'nq-tag-high'; }
+    else { position = '프리미엄'; tagClass = 'nq-tag-premium'; }
+
+    $('px-out').textContent = fmt(px) + ' px';
+    $('rate-out').textContent = fmt(baseRate) + '원';
+    $('rev-out').textContent = rev + '회';
+    $('total').textContent = fmt(total) + '원';
+    $('px-tier').textContent = tierLabel(px);
+    $('base-val').textContent = fmt(base) + '원';
+    $('opt-val').textContent = fmt(optSum) + '원';
+    $('rev-val').textContent = fmt(extraRev) + '원';
+    $('multi-val').textContent = '×' + multi.toFixed(2);
+    $('market-avg').textContent = '평균 ' + fmt(avgTotal) + '원';
+    $('market-tag').innerHTML = '<span class="nq-tag ' + tagClass + '">' + position + ' · ' + (ratio * 100).toFixed(0) + '%</span>';
+
+    var barPos = Math.min(95, Math.max(5, (ratio - 0.6) / 0.8 * 100));
+    $('market-dot').style.left = barPos + '%';
+
+    var optList = opts.length ? opts.map(function(o) { return '  · ' + o.name + ' (+' + fmt(o.price) + '원)'; }).join('\n') : '  · 없음';
+
+    var positionLine;
+    if (ratio < 1.0) {
+      positionLine = '※ 같은 조건의 크몽 평균가는 ' + fmt(avgTotal) + '원입니다. 이번 견적은 시장 평균보다 합리적으로 책정했습니다.';
+    } else if (ratio < 1.15) {
+      positionLine = '※ 같은 조건의 크몽 평균가는 ' + fmt(avgTotal) + '원입니다. 디자인 퀄리티 + 수정 ' + rev + '회 포함 기준으로 책정했습니다.';
+    } else {
+      positionLine = '※ 시장 평균(' + fmt(avgTotal) + '원) 대비 프리미엄 견적입니다. ' + catName + ' 카테고리 특성상 디테일 작업이 평균 1.4배 더 들어갑니다.';
+    }
+
+    var msgClient = '안녕하세요, 사장님.\n요청 주신 ' + catName + ' 상세페이지 견적을 정리해드립니다.\n\n━━━━━━━━━━━━━━━━━\n■ 작업 범위\n  · 상세페이지 ' + fmt(px) + 'px (모바일 가독성 기준 설계)\n  · 수정 ' + rev + '회 포함 (기본 2회 + 추가 ' + Math.max(0, rev - 2) + '회)\n  · 납기 ' + days + '일\n\n■ 추가 옵션\n' + optList + '\n\n■ 최종 견적\n  ' + fmt(total) + '원 (VAT 별도)\n\n' + positionLine + '\n━━━━━━━━━━━━━━━━━\n\n■ 이 견적이 다른 곳보다 안전한 이유\n  1) 시장 평균 데이터 기반으로 가격을 책정합니다 (감으로 부르지 않습니다).\n  2) 수정 ' + rev + '회가 견적에 포함되어 있어, 작업 중 추가 비용이 발생하지 않습니다.\n  3) 원본 파일이 필요하실 경우 +30,000원으로 평생 재사용 가능합니다.\n\n견적 확정해주시면 ' + (days === 1 ? '즉시' : '내일') + ' 작업 시작해서 ' + days + '일 안에 1차 시안 보내드리겠습니다.\n편하게 카톡 주세요!';
+
+    var startDate = todayPlus(0);
+    var endDate = todayPlus(days);
+    var optsText = opts.length ? opts.map(function(o) { return o.name; }).join(', ') : '없음';
+    var projectTitle = projname || (catName + ' 상세페이지 ' + fmt(px) + 'px');
+
+    var msgNotion = '# ' + projectTitle + '\n\n## 견적 정보\n- **견적가:** ' + fmt(total) + '원 (VAT 별도)\n- **페이지 길이:** ' + fmt(px) + ' px\n- **기본 단가:** ' + fmt(baseRate) + '원 (1,000px당)\n- **추가 옵션:** ' + optsText + '\n- **카테고리:** ' + catName + '\n- **시장 비교:** ' + position + ' (시장 평균 대비 ' + (ratio * 100).toFixed(0) + '%)\n\n## 작업 일정\n- **시작일:** ' + startDate + '\n- **마감일:** ' + endDate + ' (' + days + '일 납기)\n- **수정 횟수:** ' + rev + '회 포함\n\n## 클라이언트 전송용 메시지\n' + msgClient + '\n\n---\n*견적 계산기 v6 · 노션쟁이 · ' + startDate + '*';
+
+    $('msg-client').textContent = msgClient;
+    $('msg-notion').textContent = msgNotion;
+
+    return { projectTitle: projectTitle, total: total, px: px, catName: catName, position: position, opts: opts, days: days, startDate: startDate, msgClient: msgClient, msgNotion: msgNotion };
+  }
+
+  function renderHistory() {
+    var history = loadHistory();
+    var container = $('history-list');
+    $('history-count').textContent = history.length + '건';
+
+    if (history.length === 0) {
+      container.innerHTML = '<div class="nq-empty">아직 저장된 견적이 없어요.<br>"💾 견적 저장" 버튼을 눌러보세요.</div>';
+      return;
+    }
+
+    container.innerHTML = history.map(function(h, i) {
+      return '<div class="nq-history-row">' +
+        '<div class="nq-history-main">' +
+          '<div class="nq-history-title">' + escapeHtml(h.title) + '</div>' +
+          '<div class="nq-history-meta">' + dateLabel(h.savedAt) + ' · ' + escapeHtml(h.catName) + ' · ' + fmt(h.total) + '원</div>' +
+        '</div>' +
+        '<div class="nq-history-actions">' +
+          '<button class="nq-history-btn" data-action="load" data-idx="' + i + '" aria-label="불러오기">↺</button>' +
+          '<button class="nq-history-btn" data-action="copy" data-idx="' + i + '" aria-label="복사">📋</button>' +
+          '<button class="nq-history-btn" data-action="delete" data-idx="' + i + '" aria-label="삭제">×</button>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+
+    Array.prototype.forEach.call(container.querySelectorAll('.nq-history-btn'), function(btn) {
+      btn.addEventListener('click', function() {
+        var idx = parseInt(btn.dataset.idx);
+        var action = btn.dataset.action;
+        var list = loadHistory();
+        if (action === 'load') {
+          setState(list[idx].state);
+          calc();
+          saveState();
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        } else if (action === 'copy') {
+          navigator.clipboard.writeText(list[idx].msgClient);
+          btn.textContent = '✓';
+          setTimeout(function() { btn.textContent = '📋'; }, 1000);
+        } else if (action === 'delete') {
+          if (confirm('이 견적을 삭제할까요?')) {
+            list.splice(idx, 1);
+            saveHistory(list);
+            renderHistory();
+          }
+        }
+      });
+    });
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, function(m) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m];
+    });
+  }
+
+  function saveQuote() {
+    var result = calc();
+    var history = loadHistory();
+    var entry = {
+      savedAt: new Date().toISOString(),
+      title: result.projectTitle,
+      total: result.total,
+      catName: result.catName,
+      position: result.position,
+      msgClient: result.msgClient,
+      msgNotion: result.msgNotion,
+      state: getState()
+    };
+    history.unshift(entry);
+    if (history.length > 50) history.length = 50;
+    saveHistory(history);
+    renderHistory();
+    var btn = $('save-btn');
+    var orig = btn.innerHTML;
+    btn.innerHTML = '✓ 저장됨';
+    setTimeout(function() { btn.innerHTML = orig; }, 1500);
+  }
+
+  function resetForm() {
+    $('projname').value = '';
+    $('px').value = 15000;
+    $('rate').value = 5000;
+    $('rev').value = 2;
+    $('cat').value = '1.0';
+    $('urgent').value = '1.0';
+    Array.prototype.forEach.call(document.querySelectorAll('.opt'), function(el) {
+      el.checked = false;
+      el.closest('.nq-opt-card').classList.remove('checked');
+    });
+    calc();
+    saveState();
+  }
+
+  ['projname', 'px', 'rate', 'rev', 'cat', 'urgent'].forEach(function(id) {
+    $(id).addEventListener('input', function() { calc(); saveState(); });
+    $(id).addEventListener('change', function() { calc(); saveState(); });
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('.opt'), function(el) {
+    el.addEventListener('change', function() {
+      var card = el.closest('.nq-opt-card');
+      if (card) card.classList.toggle('checked', el.checked);
+      calc();
+      saveState();
+    });
+  });
+
+  function bindCopy(btnId, srcId) {
+    $(btnId).addEventListener('click', function() {
+      navigator.clipboard.writeText($(srcId).textContent);
+      var btn = $(btnId);
+      var orig = btn.innerHTML;
+      btn.innerHTML = '✓ 복사 완료';
+      setTimeout(function() { btn.innerHTML = orig; }, 1800);
+    });
+  }
+  bindCopy('copy-client', 'msg-client');
+  bindCopy('copy-notion', 'msg-notion');
+
+  $('save-btn').addEventListener('click', saveQuote);
+  $('reset-btn').addEventListener('click', resetForm);
+  $('clear-all-btn').addEventListener('click', function() {
+    if (confirm('모든 저장된 견적을 삭제할까요? 되돌릴 수 없어요.')) {
+      saveHistory([]);
+      renderHistory();
+    }
+  });
+
+  Array.prototype.forEach.call(document.querySelectorAll('.nq-tab'), function(tab) {
+    tab.addEventListener('click', function() {
+      Array.prototype.forEach.call(document.querySelectorAll('.nq-tab'), function(t) { t.classList.remove('active'); });
+      Array.prototype.forEach.call(document.querySelectorAll('.nq-tab-content'), function(c) { c.classList.remove('active'); });
+      tab.classList.add('active');
+      $('tab-' + tab.dataset.tab).classList.add('active');
+    });
+  });
+
+  loadState();
+  calc();
+  renderHistory();
+})();
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function() {
+    navigator.serviceWorker.register('./service-worker.js')
+      .then(function(reg) {
+        console.log('[PWA] Service worker 등록 완료', reg.scope);
+      })
+      .catch(function(err) {
+        console.log('[PWA] Service worker 등록 실패', err);
+      });
+  });
+}
+
+var deferredPrompt;
+window.addEventListener('beforeinstallprompt', function(e) {
+  e.preventDefault();
+  deferredPrompt = e;
+  var installBtn = document.getElementById('pwa-install-btn');
+  if (installBtn) {
+    installBtn.style.display = 'block';
+    installBtn.addEventListener('click', function() {
+      if (!deferredPrompt) return;
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then(function(choice) {
+        console.log('[PWA] 설치 결과:', choice.outcome);
+        deferredPrompt = null;
+        installBtn.style.display = 'none';
+      });
+    });
+  }
+});
+
+window.addEventListener('appinstalled', function() {
+  console.log('[PWA] 앱 설치 완료');
+  var installBtn = document.getElementById('pwa-install-btn');
+  if (installBtn) installBtn.style.display = 'none';
+});
+</script>
+
+</body>
+</html>
